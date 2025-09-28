@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asisten AI Statis</title>
+    <!-- Tautan ke Web App Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <!-- Meta tag untuk tema warna di browser mobile -->
+    <meta name="theme-color" content="#3b82f6"/>
+    <!-- Menggunakan Tailwind CSS untuk styling yang responsif -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Menggunakan Google Fonts untuk tipografi yang lebih baik -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom scrollbar styling untuk tema terang */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; /* bg-slate-100 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; /* bg-slate-300 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; /* bg-slate-400 */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Memastikan chat window tidak tertutup oleh input yang mengambang */
+        #chat-window {
+            padding-bottom: 100px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-gray-800 antialiased">
+
+    <!-- Kontainer Utama Aplikasi -->
+    <div id="app-container" class="flex flex-col h-screen max-w-3xl mx-auto relative">
+
+        <!-- Header Kosong -->
+        <header class="bg-slate-50 h-16 w-full flex-shrink-0"></header>
+
+        <!-- Jendela Obrolan -->
+        <main id="chat-window" class="flex-1 p-4 overflow-y-auto space-y-6 w-full">
+            <!-- Pesan akan ditambahkan di sini oleh JavaScript -->
+        </main>
+
+        <!-- Indikator Mengetik -->
+        <div id="typing-indicator" class="hidden p-4">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                </div>
+                <div class="flex items-center space-x-1 p-3 bg-white border border-gray-200 rounded-lg rounded-bl-none shadow-sm">
+                    <span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.1s;"></span>
+                    <span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></span>
+                    <span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.3s;"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Pengguna Mengambang -->
+        <div class="absolute bottom-0 left-0 right-0 p-4 bg-slate-50">
+            <div class="relative flex items-center max-w-3xl mx-auto">
+                <input type="text" id="user-input" class="w-full bg-white border border-gray-300 rounded-full py-3 pl-5 pr-14 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 shadow-sm" placeholder="Input Api key anda untuk memulai obrolan...">
+                <button id="send-btn" class="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2.5 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white focus:ring-blue-500 transition-transform duration-200 active:scale-90 shadow-sm">
+                    <svg class="w-5 h-5 transform rotate-90" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.428A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. REFERENSI ELEMEN DOM ---
+        const chatWindow = document.getElementById('chat-window');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        // --- 2. STATE APLIKASI ---
+        let apiKey = null;
+
+        // --- 3. ASET & KONSTANTA ---
+        const AI_AVATAR_HTML = `
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+            </div>`;
+
+        // --- 4. FUNGSI-FUNGSI UI ---
+
+        /**
+         * Menambahkan pesan baru ke jendela obrolan dan melakukan scroll otomatis.
+         * @param {string} text - Isi pesan.
+         * @param {'user' | 'ai'} sender - Pengirim pesan.
+         */
+        function addMessage(text, sender) {
+            const messageContainer = document.createElement('div');
+            messageContainer.className = `flex items-start gap-3 ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+
+            let messageHTML = '';
+            if (sender === 'user') {
+                messageHTML = `
+                    <div class="max-w-md md:max-w-lg lg:max-w-xl px-4 py-3 bg-blue-500 text-white rounded-2xl rounded-br-lg shadow-sm">
+                        <p class="break-words">${text}</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center flex-shrink-0 font-semibold text-slate-600">
+                        U
+                    </div>`;
+            } else { // AI
+                messageHTML = `
+                    ${AI_AVATAR_HTML}
+                    <div class="max-w-md md:max-w-lg lg:max-w-xl px-4 py-3 bg-white border border-slate-200 rounded-2xl rounded-bl-lg shadow-sm">
+                        <p class="text-gray-800 break-words">${text}</p>
+                    </div>`;
+            }
+
+            messageContainer.innerHTML = messageHTML;
+            chatWindow.appendChild(messageContainer);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        /** Menampilkan indikator "mengetik". */
+        function showTypingIndicator() {
+            chatWindow.appendChild(typingIndicator);
+            typingIndicator.classList.remove('hidden');
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        /** Menyembunyikan indikator "mengetik". */
+        function hideTypingIndicator() {
+            typingIndicator.classList.add('hidden');
+        }
+
+        // --- 5. LOGIKA API (KOMUNIKASI DENGAN GEMINI) ---
+
+        /**
+         * Mengirim permintaan ke Gemini API dan mengembalikan respons teks.
+         * @param {string} userText - Teks input dari pengguna.
+         * @returns {Promise<string>} Respons teks dari AI.
+         */
+        async function getAIResponse(userText) {
+            if (!apiKey) return "Harap masukkan API key Anda terlebih dahulu.";
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: userText }] }],
+                tools: [{ "google_search": {} }],
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error("API Error:", errorData);
+                    return `Error: ${errorData.error.message}`;
+                }
+
+                const result = await response.json();
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                return text || "Maaf, saya tidak menerima respon yang valid. Coba lagi.";
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                return "Gagal terhubung ke server AI. Periksa koneksi internet Anda.";
+            }
+        }
+
+        // --- 6. FUNGSI UTAMA & ALUR KONTROL ---
+
+        /**
+         * Menangani seluruh proses pengiriman pesan, dari input pengguna hingga respons AI.
+         */
+        async function handleSendMessage() {
+            const userText = userInput.value.trim();
+            if (userText === "") return;
+
+            // Alur 1: Jika API key belum ada, simpan input sebagai API key.
+            if (!apiKey) {
+                apiKey = userText;
+                userInput.value = "";
+                userInput.placeholder = "Ketik pesan Anda...";
+                addMessage("API Key diterima. Anda sekarang dapat memulai obrolan.", 'ai');
+                userInput.focus();
+                return;
+            }
+
+            // Alur 2: Proses obrolan normal.
+            addMessage(userText, 'user');
+            userInput.value = "";
+            userInput.focus();
+
+            showTypingIndicator();
+
+            try {
+                const aiText = await getAIResponse(userText);
+                addMessage(aiText, 'ai');
+            } catch (error) {
+                console.error("Error getting AI response:", error);
+                addMessage("Maaf, terjadi kesalahan saat memproses permintaan Anda.", 'ai');
+            } finally {
+                hideTypingIndicator();
+            }
+        }
+
+        // --- 7. EVENT LISTENERS ---
+        sendBtn.addEventListener('click', handleSendMessage);
+        userInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                handleSendMessage();
+            }
+        });
+
+        // --- 8. INISIALISASI APLIKASI ---
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                 addMessage("Selamat datang! Untuk memulai, silakan masukkan Gemini API Key Anda.", 'ai');
+            }, 500);
+
+            // Registrasi Service Worker untuk PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker berhasil didaftarkan dengan cakupan:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Pendaftaran Service Worker gagal:', error);
+                    });
+            }
+        });
+    </script>
+</body>
+</html>
+
