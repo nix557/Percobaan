@@ -48,10 +48,10 @@
     <div id="app-container" class="flex flex-col h-screen max-w-3xl mx-auto relative">
 
         <!-- Header Kosong -->
-        <header class="bg-slate-50 h-16 w-full flex-shrink-0"></header>
+        <header class="bg-slate-50 h-16 w-full flex-shrink-0 fixed top-0 z-10"></header>
 
         <!-- Jendela Obrolan -->
-        <main id="chat-window" class="flex-1 p-4 overflow-y-auto space-y-6 w-full">
+        <main id="chat-window" class="flex-1 p-4 pt-20 overflow-y-auto space-y-6 w-full">
             <!-- Pesan akan ditambahkan di sini oleh JavaScript -->
         </main>
 
@@ -70,7 +70,7 @@
         </div>
 
         <!-- Input Pengguna Mengambang -->
-        <div class="absolute bottom-0 left-0 right-0 p-4 bg-slate-50">
+        <div class="fixed bottom-0 left-0 right-0 p-4 bg-slate-50 z-10">
             <div class="relative flex items-center max-w-3xl mx-auto">
                 <input type="text" id="user-input" class="w-full bg-white border border-gray-300 rounded-full py-3 pl-5 pr-14 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-500 transition duration-300 shadow-sm" placeholder="Input Api key anda untuk memulai obrolan...">
                 <button id="send-btn" class="absolute right-2 top-1/2 -translate-y-1/2 bg-slate-800 hover:bg-slate-900 text-white rounded-full p-2.5 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white focus:ring-slate-800 transition-transform duration-200 active:scale-90 shadow-sm">
@@ -239,7 +239,36 @@
                         console.log('Pendaftaran Service Worker gagal:', error);
                     });
             }
+
+            // --- 9. PERBAIKAN BUG KEYBOARD MOBILE ---
+
+            /**
+             * Mencegah fungsi dijalankan berulang kali. Fungsi hanya akan berjalan sekali
+             * setelah jeda waktu tertentu sejak pemanggilan terakhir.
+             * @param {Function} func - Fungsi yang ingin di-debounce.
+             * @param {number} delay - Jeda waktu dalam milidetik.
+             */
+            function debounce(func, delay) {
+                let timeout;
+                return function(...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), delay);
+                };
+            }
+
+            // Mengatasi masalah di mana viewport tidak kembali normal setelah keyboard ditutup.
+            const appContainer = document.getElementById('app-container');
+            const setAppHeight = () => {
+                // Mengatur tinggi container utama secara eksplisit ke tinggi jendela browser.
+                appContainer.style.height = `${window.innerHeight}px`;
+            };
+
+            // Atur tinggi saat pertama kali dimuat
+            setAppHeight();
+            // Atur ulang tinggi setiap kali ukuran jendela berubah (tapi dengan debounce!)
+            window.addEventListener('resize', debounce(setAppHeight, 100)); // Delay 100ms
         });
     </script>
 </body>
 </html>
+
