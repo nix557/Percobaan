@@ -10,6 +10,8 @@
     <meta name="theme-color" content="#f8fafc"/>
     <!-- Menggunakan Tailwind CSS untuk styling yang responsif -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Menambahkan Marked.js untuk rendering Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- Menggunakan Google Fonts untuk tipografi yang lebih baik -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,6 +42,17 @@
         #chat-window {
             padding-bottom: 100px;
         }
+        /* Styling dasar untuk konten Markdown */
+        .prose p { margin-bottom: 1rem; }
+        .prose ul, .prose ol { margin-left: 1.5rem; margin-bottom: 1rem; }
+        .prose ul { list-style-type: disc; }
+        .prose ol { list-style-type: decimal; }
+        .prose a { color: #2563eb; text-decoration: underline; }
+        .prose pre { background-color: #f1f5f9; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 1rem; }
+        .prose code { background-color: #f1f5f9; padding: 0.2em 0.4em; margin: 0; font-size: 85%; border-radius: 6px; }
+        .prose pre code { background-color: transparent; padding: 0; }
+        .prose blockquote { border-left: 4px solid #e2e8f0; padding-left: 1rem; color: #64748b; }
+        .prose h1, .prose h2, .prose h3 { font-weight: 600; margin-bottom: 1rem; }
     </style>
 </head>
 <body class="bg-slate-50 text-gray-800 antialiased">
@@ -77,6 +90,7 @@
                     <svg class="w-5 h-5 transform rotate-90" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.428A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
                 </button>
             </div>
+            <p class="text-center text-xs text-slate-400 mt-2">Powered by Nixon</p>
         </div>
 
     </div>
@@ -105,22 +119,23 @@
          */
         function addMessage(text, sender) {
             const messageContainer = document.createElement('div');
-            messageContainer.className = `flex items-start gap-3 ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+            messageContainer.className = `flex items-start ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
 
             let messageHTML = '';
             if (sender === 'user') {
+                 // Menghapus avatar dari pesan pengguna
+                messageContainer.classList.add('gap-3'); // Tetap gunakan gap untuk konsistensi AI
                 messageHTML = `
                     <div class="max-w-md md:max-w-lg lg:max-w-xl px-4 py-3 bg-slate-800 text-white rounded-2xl rounded-br-lg shadow-sm">
                         <p class="break-words">${text}</p>
-                    </div>
-                    <div class="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center flex-shrink-0 font-semibold text-slate-600">
-                        U
                     </div>`;
             } else { // AI
+                messageContainer.classList.add('gap-3');
+                // Menggunakan marked.parse() untuk merender respons AI sebagai Markdown
                 messageHTML = `
                     ${AI_AVATAR_HTML}
-                    <div class="max-w-md md:max-w-lg lg:max-w-xl px-4 py-3 bg-white border border-slate-200 rounded-2xl rounded-bl-lg shadow-sm">
-                        <p class="text-gray-800 break-words">${text}</p>
+                    <div class="prose max-w-md md:max-w-lg lg:max-w-xl px-4 py-3 bg-white border border-slate-200 rounded-2xl rounded-bl-lg shadow-sm break-words">
+                        ${marked.parse(text)}
                     </div>`;
             }
 
@@ -199,7 +214,7 @@
             // Alur 2: Proses obrolan normal.
             addMessage(userText, 'user');
             userInput.value = "";
-            userInput.focus();
+            userInput.blur(); // Menghilangkan fokus dari input untuk menutup keyboard
 
             showTypingIndicator();
 
@@ -261,14 +276,26 @@
             const setAppHeight = () => {
                 // Mengatur tinggi container utama secara eksplisit ke tinggi jendela browser.
                 appContainer.style.height = `${window.innerHeight}px`;
+                // Scroll ke bawah untuk memastikan input terlihat jika perlu
+                setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 0);
             };
 
             // Atur tinggi saat pertama kali dimuat
             setAppHeight();
+
             // Atur ulang tinggi setiap kali ukuran jendela berubah (tapi dengan debounce!)
             window.addEventListener('resize', debounce(setAppHeight, 100)); // Delay 100ms
+
+            // Tambahkan listener untuk event 'blur' pada input untuk menangani penutupan keyboard
+            // Ini sangat efektif di perangkat iOS/iPadOS
+            userInput.addEventListener('blur', () => {
+                // Saat input tidak lagi fokus (keyboard turun), paksa atur ulang tinggi
+                // dan scroll ke posisi semula.
+                setAppHeight();
+            });
         });
     </script>
 </body>
 </html>
+
 
