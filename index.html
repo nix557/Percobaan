@@ -276,8 +276,9 @@
             const setAppHeight = () => {
                 // Mengatur tinggi container utama secara eksplisit ke tinggi jendela browser.
                 appContainer.style.height = `${window.innerHeight}px`;
-                // Scroll ke bawah untuk memastikan input terlihat jika perlu
-                setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 0);
+                // BUG FIX: Menghapus baris di bawah ini yang menyebabkan scroll pada elemen yang salah.
+                // Scroll pada area chat sudah ditangani dengan benar oleh fungsi 'addMessage'.
+                // setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 0);
             };
 
             // Atur tinggi saat pertama kali dimuat
@@ -297,5 +298,3 @@
     </script>
 </body>
 </html>
-
-
