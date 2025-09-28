@@ -2,12 +2,12 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Asisten AI Statis</title>
     <!-- Tautan ke Web App Manifest -->
     <link rel="manifest" href="manifest.json">
     <!-- Meta tag untuk tema warna di browser mobile -->
-    <meta name="theme-color" content="#3b82f6"/>
+    <meta name="theme-color" content="#f8fafc"/>
     <!-- Menggunakan Tailwind CSS untuk styling yang responsif -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Menggunakan Google Fonts untuk tipografi yang lebih baik -->
@@ -58,7 +58,7 @@
         <!-- Indikator Mengetik -->
         <div id="typing-indicator" class="hidden p-4">
             <div class="flex items-center space-x-2">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center flex-shrink-0">
+                <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
                 </div>
                 <div class="flex items-center space-x-1 p-3 bg-white border border-gray-200 rounded-lg rounded-bl-none shadow-sm">
@@ -72,8 +72,8 @@
         <!-- Input Pengguna Mengambang -->
         <div class="absolute bottom-0 left-0 right-0 p-4 bg-slate-50">
             <div class="relative flex items-center max-w-3xl mx-auto">
-                <input type="text" id="user-input" class="w-full bg-white border border-gray-300 rounded-full py-3 pl-5 pr-14 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 shadow-sm" placeholder="Input Api key anda untuk memulai obrolan...">
-                <button id="send-btn" class="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2.5 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white focus:ring-blue-500 transition-transform duration-200 active:scale-90 shadow-sm">
+                <input type="text" id="user-input" class="w-full bg-white border border-gray-300 rounded-full py-3 pl-5 pr-14 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-500 transition duration-300 shadow-sm" placeholder="Input Api key anda untuk memulai obrolan...">
+                <button id="send-btn" class="absolute right-2 top-1/2 -translate-y-1/2 bg-slate-800 hover:bg-slate-900 text-white rounded-full p-2.5 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white focus:ring-slate-800 transition-transform duration-200 active:scale-90 shadow-sm">
                     <svg class="w-5 h-5 transform rotate-90" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.428A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
                 </button>
             </div>
@@ -93,12 +93,11 @@
 
         // --- 3. ASET & KONSTANTA ---
         const AI_AVATAR_HTML = `
-            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center flex-shrink-0">
+            <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
             </div>`;
 
         // --- 4. FUNGSI-FUNGSI UI ---
-
         /**
          * Menambahkan pesan baru ke jendela obrolan dan melakukan scroll otomatis.
          * @param {string} text - Isi pesan.
@@ -111,7 +110,7 @@
             let messageHTML = '';
             if (sender === 'user') {
                 messageHTML = `
-                    <div class="max-w-md md:max-w-lg lg:max-w-xl px-4 py-3 bg-blue-500 text-white rounded-2xl rounded-br-lg shadow-sm">
+                    <div class="max-w-md md:max-w-lg lg:max-w-xl px-4 py-3 bg-slate-800 text-white rounded-2xl rounded-br-lg shadow-sm">
                         <p class="break-words">${text}</p>
                     </div>
                     <div class="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center flex-shrink-0 font-semibold text-slate-600">
@@ -143,7 +142,6 @@
         }
 
         // --- 5. LOGIKA API (KOMUNIKASI DENGAN GEMINI) ---
-
         /**
          * Mengirim permintaan ke Gemini API dan mengembalikan respons teks.
          * @param {string} userText - Teks input dari pengguna.
@@ -181,7 +179,6 @@
         }
 
         // --- 6. FUNGSI UTAMA & ALUR KONTROL ---
-
         /**
          * Menangani seluruh proses pengiriman pesan, dari input pengguna hingga respons AI.
          */
@@ -246,5 +243,3 @@
     </script>
 </body>
 </html>
-
-
